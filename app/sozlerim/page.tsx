@@ -57,9 +57,7 @@ export default function MyQuotes() {
             <QuoteCard 
               key={quote.id} 
               quote={quote} 
-              onDelete={() => {
-                setQuotes(quotes.filter(q => q.id !== quote.id));
-              }} 
+              
             />
           ))}
         </div>
