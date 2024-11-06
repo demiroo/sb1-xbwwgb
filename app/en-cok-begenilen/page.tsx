@@ -6,30 +6,36 @@ import { supabase } from "@/lib/supabase";
 import { Loader } from "@/components/loader";
 
 export default function MostLikedQuotes() {
-  const [quotes, setQuotes] = useState([]);
+  const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchMostLikedQuotes() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         const { data, error } = await supabase
           .from("quotes")
-          .select(`
+          .select(
+            `
             *,
-            quote_likes!left(user_id)!filter(user_id.eq.${session?.user?.id}),
-            quote_bookmarks!left(user_id)!filter(user_id.eq.${session?.user?.id})
-          `)
+            quote_likes (user_id),
+            quote_bookmarks (user_id)
+          `
+          )
+          .eq("quote_likes.user_id", session?.user?.id)
+          .eq("quote_bookmarks.user_id", session?.user?.id)
           .order("likes_count", { ascending: false })
           .limit(50);
 
         if (error) throw error;
 
-        const formattedQuotes = data.map(quote => ({
+        const formattedQuotes = data.map((quote) => ({
           ...quote,
           is_liked: quote.quote_likes?.length > 0,
-          is_bookmarked: quote.quote_bookmarks?.length > 0
+          is_bookmarked: quote.quote_bookmarks?.length > 0,
         }));
 
         setQuotes(formattedQuotes);
