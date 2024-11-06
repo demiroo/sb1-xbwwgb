@@ -20,10 +20,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { AuthDialog } from "./auth/auth-dialog";
+import { useState } from "react";
 
 export function Header() {
   const pathname = usePathname();
-  const { user, signIn, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -38,43 +41,23 @@ export function Header() {
                 <TooltipTrigger asChild>
                   <Link
                     href="/en-cok-begenilen"
-                    className={pathname === "/en-cok-begenilen" ? "text-foreground" : "text-foreground/60"}
+                    className={
+                      pathname === "/en-cok-begenilen"
+                        ? "text-foreground"
+                        : "text-foreground/60"
+                    }
                   >
                     <Heart className="h-5 w-5" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>En Çok Beğenilenler</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/en-cok-kaydedilen"
-                    className={pathname === "/en-cok-kaydedilen" ? "text-foreground" : "text-foreground/60"}
-                  >
-                    <Bookmark className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>En Çok Kaydedilenler</p>
-                </TooltipContent>
+                <TooltipContent>{/* Tooltip content here */}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </nav>
         </div>
-
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="ml-auto flex items-center space-x-4">
           {user ? (
             <>
-              <Button variant="outline" className="hidden md:inline-flex" asChild>
-                <Link href="/ekle">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Söz Ekle
-                </Link>
-              </Button>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">Hesabım</Button>
@@ -99,16 +82,15 @@ export function Header() {
               </DropdownMenu>
             </>
           ) : (
-            <Button onClick={() => signIn()}>Giriş Yap</Button>
+            <Button onClick={() => setShowAuthDialog(true)}>Giriş Yap</Button>
           )}
-
           <ThemeToggle />
-
           <Button variant="outline" size="icon" className="md:hidden">
             <Menu className="h-4 w-4" />
           </Button>
         </div>
       </div>
+      <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
     </header>
   );
 }
