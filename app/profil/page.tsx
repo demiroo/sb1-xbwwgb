@@ -131,8 +131,8 @@ export default function ProfilePage() {
                 <QuoteCard 
                   key={quote.id} 
                   quote={quote} 
-                  onLike={handleLike}
-                  onBookmark={handleBookmark}
+                  
+                  
                 />
               ))}
             </div>
@@ -152,8 +152,7 @@ export default function ProfilePage() {
                 <QuoteCard 
                   key={quote.id} 
                   quote={quote} 
-                  onLike={handleLike}
-                  onBookmark={handleBookmark}
+                  
                 />
               ))}
             </div>
@@ -173,8 +172,7 @@ export default function ProfilePage() {
                 <QuoteCard 
                   key={quote.id} 
                   quote={quote} 
-                  onLike={handleLike}
-                  onBookmark={handleBookmark}
+                 
                 />
               ))}
             </div>
