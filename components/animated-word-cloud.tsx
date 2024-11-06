@@ -99,7 +99,7 @@ const WordButton = ({ word, index, onSelect }: WordButtonProps) => {
 };
 
 const ScrollingRow = ({ words, direction = 1, speed = 30, onSelect }: { 
-  words: typeof words.top, 
+  words: { text: string; size: string; gradient: string; slug: string; }[], 
   direction?: number,
   speed?: number,
   onSelect: (category: string) => void
