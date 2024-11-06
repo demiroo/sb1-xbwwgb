@@ -8,31 +8,37 @@ import { categories } from "@/lib/categories";
 
 export default function CategoryPage() {
   const params = useParams();
-  const [quotes, setQuotes] = useState([]);
+  const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const category = categories.find(c => c.slug === params.slug);
+  const category = categories.find((c) => c.slug === params.slug);
 
   useEffect(() => {
     async function fetchQuotes() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         const { data, error } = await supabase
           .from("quotes")
-          .select(`
+          .select(
+            `
             *,
-            quote_likes!left(user_id)!filter(user_id.eq.${session?.user?.id}),
-            quote_bookmarks!left(user_id)!filter(user_id.eq.${session?.user?.id})
-          `)
+            quote_likes (user_id),
+            quote_bookmarks (user_id)
+          `
+          )
+          .eq("quote_likes.user_id", session?.user?.id)
+          .eq("quote_bookmarks.user_id", session?.user?.id)
           .eq("category", params.slug)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-        const formattedQuotes = data.map(quote => ({
+        const formattedQuotes = data.map((quote) => ({
           ...quote,
           is_liked: quote.quote_likes?.length > 0,
-          is_bookmarked: quote.quote_bookmarks?.length > 0
+          is_bookmarked: quote.quote_bookmarks?.length > 0,
         }));
 
         setQuotes(formattedQuotes);
