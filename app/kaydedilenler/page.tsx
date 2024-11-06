@@ -21,6 +21,13 @@ interface Quote {
   is_bookmarked?: boolean;
 }
 
+// Define props interface for QuoteCard component
+interface QuoteCardProps {
+  quote: Quote;
+  onLike: (quoteId: string) => Promise<void>;
+  onBookmark: (quoteId: string) => Promise<void>;
+}
+
 export default function BookmarksPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,21 +42,28 @@ export default function BookmarksPage() {
 
     async function fetchBookmarkedQuotes() {
       try {
+        if (!user) return;
+
         const { data, error } = await supabase
           .from("quotes")
-          .select(`
+          .select(
+            `
             *,
-            quote_likes!left(user_id)!filter(user_id.eq.${user.id}),
-            quote_bookmarks!inner(user_id)!filter(user_id.eq.${user.id})
-          `)
+            quote_likes (user_id),
+            quote_bookmarks (user_id)
+          `
+          )
+          .eq("quote_likes.user_id", user.id)
+          .eq("quote_bookmarks.user_id", user.id)
+          .not("quote_bookmarks", "is", null)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-        const formattedQuotes = data.map(quote => ({
+        const formattedQuotes = data.map((quote) => ({
           ...quote,
           is_liked: quote.quote_likes?.length > 0,
-          is_bookmarked: true
+          is_bookmarked: true,
         }));
 
         setQuotes(formattedQuotes);
@@ -63,39 +77,41 @@ export default function BookmarksPage() {
     fetchBookmarkedQuotes();
   }, [user, router]);
 
-  const handleLike = async (quoteId: string) => {
+  const handleLike = async (quoteId: string): Promise<void> => {
     try {
-      const { data: result } = await supabase
-        .rpc("toggle_like", {
-          p_quote_id: quoteId,
-          p_user_id: user?.id
-        });
+      const { data: result } = await supabase.rpc("toggle_like", {
+        p_quote_id: quoteId,
+        p_user_id: user?.id,
+      });
 
-      setQuotes(quotes.map(quote => {
-        if (quote.id === quoteId) {
-          return {
-            ...quote,
-            is_liked: result,
-            likes_count: result ? quote.likes_count + 1 : quote.likes_count - 1
-          };
-        }
-        return quote;
-      }));
+      setQuotes(
+        quotes.map((quote) => {
+          if (quote.id === quoteId) {
+            return {
+              ...quote,
+              is_liked: result,
+              likes_count: result
+                ? quote.likes_count + 1
+                : quote.likes_count - 1,
+            };
+          }
+          return quote;
+        })
+      );
     } catch (error) {
       console.error("Error toggling like:", error);
     }
   };
 
-  const handleBookmark = async (quoteId: string) => {
+  const handleBookmark = async (quoteId: string): Promise<void> => {
     try {
-      const { data: result } = await supabase
-        .rpc("toggle_bookmark", {
-          p_quote_id: quoteId,
-          p_user_id: user?.id
-        });
+      const { data: result } = await supabase.rpc("toggle_bookmark", {
+        p_quote_id: quoteId,
+        p_user_id: user?.id,
+      });
 
       if (!result) {
-        setQuotes(quotes.filter(quote => quote.id !== quoteId));
+        setQuotes(quotes.filter((quote) => quote.id !== quoteId));
       }
     } catch (error) {
       console.error("Error toggling bookmark:", error);
@@ -108,10 +124,7 @@ export default function BookmarksPage() {
         <h1 className="text-3xl font-bold mb-8">Kaydedilenler</h1>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-48 rounded-lg bg-muted animate-pulse"
-            />
+            <div key={i} className="h-48 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       </div>
@@ -124,7 +137,9 @@ export default function BookmarksPage() {
         <h1 className="text-3xl font-bold mb-8">Kaydedilenler</h1>
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <BookmarkIcon className="h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Henüz kaydettiğiniz söz yok</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            Henüz kaydettiğiniz söz yok
+          </h2>
           <p className="text-muted-foreground mb-4">
             Beğendiğiniz sözleri kaydedin ve daha sonra tekrar okuyun
           </p>
@@ -144,8 +159,8 @@ export default function BookmarksPage() {
           <QuoteCard
             key={quote.id}
             quote={quote}
-            onLike={handleLike}
-            onBookmark={handleBookmark}
+            
+           
           />
         ))}
       </div>
